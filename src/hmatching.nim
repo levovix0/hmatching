@@ -102,6 +102,11 @@ func nodeStr(n: NimNode): string =
     of nnkOpenSymChoice: n[0].strVal()
     of nnkSym: n.strVal()
     of nnkStrKinds: n.strVal()
+    of nnkAccQuoted:
+      var r = ""
+      for x in n:
+        r.add x.strVal()
+      r
     else: raiseAssert(&"Cannot get string value from node kind {n.kind}")
 
 func lineIInfo(node: NimNode): NimNode =
@@ -752,7 +757,7 @@ func parseNestedKey(n: NimNode): Match =
   n.assertKind({nnkExprColonExpr})
   func aux(spl: seq[NimNode]): Match =
     case spl[0].kind:
-      of nnkIdentKinds:
+      of nnkIdentKinds, nnkAccQuoted:
         if spl.len == 1:
           return n[1].parseMatchExpr()
         else:
@@ -840,9 +845,9 @@ func parseKVTuple(n: NimNode): Match =
       of nnkExprColonExpr:
         var str: string
         case elem[0].kind:
-          of nnkIdentKinds, nnkDotExpr, nnkBracketExpr:
+          of nnkIdentKinds, nnkDotExpr, nnkBracketExpr, nnkAccQuoted:
             let first = elem[0].firstDot()
-            if first.kind == nnkIdent:
+            if first.kind in {nnkIdent, nnkAccQuoted}:
               str = first.nodeStr()
 
             else:

@@ -3048,3 +3048,20 @@ suite "Tests":
 
     assumingV2 expr() as name:
       echo 12
+
+suite "Quote tests":
+  type Obj = object
+    `div`: int
+    `divdiv`: int
+    `"div div"`: int
+
+  test "match nnkAccQuoted field":
+    let x = Obj(`div`: 1, `divdiv`: 2, `"div div"`: 3)
+    case x
+    of (`div`: @a, `div div`: @b, `"div div"`: @c):
+      check:
+        a == 1
+        b == 2
+        c == 3
+    else:
+      fail()
