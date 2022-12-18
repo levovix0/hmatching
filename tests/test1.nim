@@ -3050,18 +3050,51 @@ suite "Tests":
       echo 12
 
 suite "Quote tests":
-  type Obj = object
-    `div`: int
-    `divdiv`: int
-    `"div div"`: int
+  type
+    Obj = object
+      `div`: int
+      `divdiv`: tuple[a, b: int]
+      `"div div"`: int
+
+    Kind = enum
+      `kindA`
+      `kindB`
+    CaseObj = object
+      case kind: Kind
+      of `kindA`:
+        a: int
+      of `kindB`:
+        b: tuple[a, b: int]
 
   test "match nnkAccQuoted field":
-    let x = Obj(`div`: 1, `divdiv`: 2, `"div div"`: 3)
+    let x = Obj(`div`: 1, `divdiv`: (2, 3), `"div div"`: 4)
     case x
-    of (`div`: @a, `div div`: @b, `"div div"`: @c):
+    of (`div`: @a, `div div`: (@b, @c), `"div div"`: @d):
       check:
         a == 1
         b == 2
         c == 3
+        d == 4
+    else:
+      fail()
+
+  test "match nnkAccQuoted kind":
+    var x = CaseObj(kind: `kindA`, a: 1)
+    case x
+    of `kindA`(a: @a):
+      check a == 1
+    of `kindB`(b: (@a, @b)):
+      fail()
+    else:
+      fail()
+    
+    x = CaseObj(kind: kindB, `b`: (1, 2))
+    case x
+    of `kindA`(a: @a):
+      fail()
+    of `kindB`(b: (@a, @b)):
+      check:
+        a == 1
+        b == 2
     else:
       fail()

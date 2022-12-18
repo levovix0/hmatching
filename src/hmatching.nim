@@ -298,8 +298,10 @@ macro hasKindImpl*(head: typed, kind: untyped): untyped =
 
   else:
     let (pref, names) = getKindNames(head)
-    kind.assertKind({nnkIdent})
-    let str = kind.toStrLit().nodeStr().addPrefix(pref)
+    kind.assertKind({nnkIdent, nnkAccQuoted})
+    # note: removing .toStrLit() passes all tests, but i don't know is this actually correct
+    # let str = kind.toStrLit().nodeStr().addPrefix(pref)
+    let str = kind.nodeStr().addPrefix(pref)
     let kind = ident(str)
     if not names.anyIt(eqIdent(it.addPrefix(pref), str)):
       error("Invalid kind name - " & kind.toStrLit().strVal(), kind)
